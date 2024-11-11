@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { NativeModules, View, PermissionsAndroid, Text, StyleSheet, Button, ToastAndroid } from "react-native"
+import { NativeModules, View, PermissionsAndroid, Text, StyleSheet, Button, ToastAndroid, ScrollView, Dimensions, Alert } from "react-native"
 import DeviceInfo from "react-native-device-info";
 import NetInfo from '@react-native-community/netinfo';
 
 const App = props => {
-  const { Telephony } = NativeModules;
+  const { Telephony, CellInfo } = NativeModules;
 
   const [cellInfo, setCallInfo] = useState([]);
   const [carrier, setCarrier] = useState("");
@@ -31,7 +31,7 @@ const App = props => {
             Telephony.getCellInfo(info => {
               const list = [];
               info.forEach(element => {
-                const { cellIdentity, connectionType } = element;
+                const { cellIdentity, connectionType, data } = element;
                 if (cellIdentity.tac && list.some(obj => obj.tac == cellIdentity.tac)) return;
                 if (cellIdentity.lac && list.some(obj => obj.lac == cellIdentity.lac)) return;
                 list.push({ ...cellIdentity, connectionType });
@@ -81,13 +81,16 @@ const App = props => {
       <View style={styleSheet.DetailsContainer}>
         <Text style={{ ...styleSheet.DetailsText, marginVertical: 10 }}>Carrier: {carrier}</Text>
         {cellInfo.map((item, index) => {
-          const { connectionType = "", tac = "NA", lac = "NA" } = item;
+          const { connectionType = "", tac = "", lac = ""} = item;
           return (
             <View key={index}>
-              <Text style={{ display: connectionType == "LTE" ? 'flex' : 'none', ...styleSheet.DetailsText }}>
+               <Text style={{ display: connectionType != "" ? 'flex' : 'none', ...styleSheet.DetailsText }}>
+                Connection Type: {connectionType}
+              </Text>
+              <Text style={{ display: tac != "" ? 'flex' : 'none', ...styleSheet.DetailsText }}>
                 TAC: {tac}
               </Text>
-              <Text style={{ display: connectionType == "GSM" ? 'flex' : 'none', ...styleSheet.DetailsText }}>
+              <Text style={{ display: lac != "" ? 'flex' : 'none', ...styleSheet.DetailsText }}>
                 LAC: {lac}
               </Text>
             </View>
@@ -108,19 +111,20 @@ const App = props => {
   )
 
   return (
-    <View style={styleSheet.MainContainer}>
-      {networkInfo.isConnected ? networkInfo.type != "wifi" ? renderCellInfo() : renderNoNetworkAndWifiView("Switch from Wifi to Mobile Network and refresh...") : renderNoNetworkAndWifiView("Connect to internet and refresh...")}
-    </View>
+    <ScrollView style={{}}>
+      <View style={styleSheet.MainContainer}>
+        {networkInfo.isConnected ? networkInfo.type != "wifi" ? renderCellInfo() : renderNoNetworkAndWifiView("Switch from Wifi to Mobile Network and refresh...") : renderNoNetworkAndWifiView("Connect to internet and refresh...")}
+      </View>
+    </ScrollView>
   )
 }
 
 const styleSheet = StyleSheet.create({
   MainContainer: {
     flex: 1,
-    backgroundColor: '#c1bfbf'
   },
   Title: {
-    color: '#646262',
+    color: '#c7c5c5',
     fontSize: 25,
     fontWeight: "bold",
     textAlign: "center",

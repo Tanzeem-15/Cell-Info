@@ -1,29 +1,28 @@
 package com.cellinfo.telephony;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 import android.os.Build;
-import android.os.Bundle;
+import android.telephony.CellIdentity;
 import android.telephony.CellIdentityCdma;
 import android.telephony.CellIdentityGsm;
 import android.telephony.CellIdentityLte;
+import android.telephony.CellIdentityNr;
 import android.telephony.CellIdentityWcdma;
 import android.telephony.CellInfo;
 import android.telephony.CellInfoCdma;
 import android.telephony.CellInfoGsm;
 import android.telephony.CellInfoLte;
+import android.telephony.CellInfoNr;
 import android.telephony.CellInfoWcdma;
-import android.telephony.CellLocation;
 import android.telephony.CellSignalStrengthCdma;
 import android.telephony.CellSignalStrengthGsm;
 import android.telephony.CellSignalStrengthLte;
+import android.telephony.CellSignalStrengthNr;
 import android.telephony.CellSignalStrengthWcdma;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
-import android.telephony.SubscriptionInfo;
-import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -41,6 +40,8 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
 
 /**
  * Created by Rafael on 03/07/17.
@@ -118,13 +119,13 @@ public class TelephonyModule extends ReactContextBaseJavaModule
         successCallback.invoke(telephonyManager.isNetworkRoaming());
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+    @SuppressLint({"NewApi", "ObsoleteSdkInt"})
     @ReactMethod
     public void getCellInfo(Callback successCallback) {
 
         WritableArray mapArray = Arguments.createArray();
 
-        List<CellInfo> cellInfo = telephonyManager.getAllCellInfo();
+        @SuppressLint("MissingPermission") List<CellInfo> cellInfo = telephonyManager.getAllCellInfo();
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1 || cellInfo == null) {
             successCallback.invoke(mapArray);
@@ -141,6 +142,7 @@ public class TelephonyModule extends ReactContextBaseJavaModule
             WritableMap map = Arguments.createMap();
 
             map.putInt("key", i);
+//            map.putString("data", info.toString());
 
             if (info instanceof CellInfoGsm) {
                 CellIdentityGsm cellIdentity = ((CellInfoGsm) info).getCellIdentity();
@@ -222,6 +224,25 @@ public class TelephonyModule extends ReactContextBaseJavaModule
                 mapCellSignalStrength.putInt("evdoLevel", cellSignalStrengthCdma.getEvdoLevel());
                 mapCellSignalStrength.putInt("evdoSnr", cellSignalStrengthCdma.getEvdoSnr());
                 mapCellSignalStrength.putInt("level", cellSignalStrengthCdma.getLevel());
+            }else if (info instanceof CellInfoNr) {
+                CellIdentityNr cellIdentityNr = (CellIdentityNr) info.getCellIdentity();
+                map.putString("connectionType", "Nr");
+
+                mapCellIdentity.putString("tac", String.valueOf(cellIdentityNr.getTac()));
+                mapCellIdentity.putString("mcc", String.valueOf(cellIdentityNr.getMccString()));
+                mapCellIdentity.putString("mnc", String.valueOf(cellIdentityNr.getMncString()));
+                mapCellIdentity.putString("pci", String.valueOf(cellIdentityNr.getPci()));
+                mapCellIdentity.putString("nci", String.valueOf(cellIdentityNr.getNci()));
+                mapCellIdentity.putString("nrarfcn", String.valueOf(cellIdentityNr.getNrarfcn()));
+                mapCellIdentity.putString("bands", String.valueOf(cellIdentityNr.getBands()));
+                mapCellIdentity.putString("channelNumber", String.valueOf(cellIdentityNr.getAdditionalPlmns()));
+
+                CellSignalStrengthNr cellSignalStrengthNr = (CellSignalStrengthNr) info.getCellSignalStrength();
+
+                mapCellSignalStrength.putInt("asuLevel", cellSignalStrengthNr.getAsuLevel());
+                mapCellSignalStrength.putInt("dBm", cellSignalStrengthNr.getDbm());
+                mapCellSignalStrength.putInt("level", cellSignalStrengthNr.getLevel());
+
             } else {
               Log.i("TelephonyModule", "Found cellInfo of unknown type " + info);
                 Toast.makeText(mReactContext, "Found cellInfo of unknown type", Toast.LENGTH_SHORT).show();
@@ -248,11 +269,12 @@ public class TelephonyModule extends ReactContextBaseJavaModule
         }
     }
 
+    @SuppressLint({"MissingPermission", "HardwareIds"})
     @ReactMethod
     public void getPhoneInfo(Callback successCallBack) {
         WritableMap mapPhoneInfo = Arguments.createMap();
 
-        mapPhoneInfo.putString("imsi", telephonyManager.getSubscriberId().toString());
+        mapPhoneInfo.putString("imsi", telephonyManager.getSubscriberId());
         mapPhoneInfo.putString("imei", telephonyManager.getDeviceId());
         mapPhoneInfo.putString("mdn", telephonyManager.getLine1Number());
         mapPhoneInfo.putString("model", Build.MANUFACTURER
@@ -263,7 +285,7 @@ public class TelephonyModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void getNetworkClass(Callback successCallback) {
-        int networkType = telephonyManager.getNetworkType();
+        @SuppressLint("MissingPermission") int networkType = telephonyManager.getNetworkType();
         String network;
 
         switch (networkType) {
@@ -288,6 +310,9 @@ public class TelephonyModule extends ReactContextBaseJavaModule
             case TelephonyManager.NETWORK_TYPE_LTE:
                 network = "4G";
                 break;
+            case TelephonyManager.NETWORK_TYPE_NR:
+                network = "5G";
+                break;
             default:
                 network = "Unknown";
                 break;
@@ -296,6 +321,7 @@ public class TelephonyModule extends ReactContextBaseJavaModule
         successCallback.invoke(network);
     }
 
+    @NonNull
     @Override
     public String getName() {
         return "Telephony";
@@ -357,6 +383,7 @@ public class TelephonyModule extends ReactContextBaseJavaModule
         sendEvent(PHONE_STATE_LISTENER, result);
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Override
     public void phoneCellInfoUpdated(List<CellInfo> cellInfo) {
