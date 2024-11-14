@@ -1,145 +1,68 @@
-import { useEffect, useState } from "react";
-import { NativeModules, View, PermissionsAndroid, Text, StyleSheet, Button, ToastAndroid, ScrollView, Dimensions, Alert } from "react-native"
-import DeviceInfo from "react-native-device-info";
-import NetInfo from '@react-native-community/netinfo';
+import { View, StyleSheet, TouchableOpacity, Text, Image, Alert } from "react-native"
+import CustomHeader from "./source/Components/CustomHeader";
+import HomeScreen from "./source/Screens/HomeScreen";
+import { useReducer, useState } from "react";
+import DetailsScreen from "./source/Screens/DetailsScreen";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import CustomisableAlert from "react-native-customisable-alert";
 
 const App = props => {
-  const { Telephony, CellInfo } = NativeModules;
 
-  const [cellInfo, setCallInfo] = useState([]);
-  const [carrier, setCarrier] = useState("");
-  const [networkInfo, setNetWorkInfo] = useState({});
-
-  useEffect(() => {
-    const removeNetInfo = NetInfo.addEventListener(state => {
-      setNetWorkInfo({
-        type: state.type,
-        isConnected: state.isConnected
-      })
-    });
-
-    return () => removeNetInfo;
-  }, [])
-
-  useEffect(() => fetchTacAndLac(), [networkInfo]);
-
-  const fetchTacAndLac = () => {
-    if (networkInfo.isConnected && networkInfo.type != 'wifi') {
-      requestPermissions(flag => {
-        if (flag) {
-          DeviceInfo.getCarrier().then((carrier) => {
-            Telephony.getCellInfo(info => {
-              const list = [];
-              info.forEach(element => {
-                const { cellIdentity, connectionType, data } = element;
-                if (cellIdentity.tac && list.some(obj => obj.tac == cellIdentity.tac)) return;
-                if (cellIdentity.lac && list.some(obj => obj.lac == cellIdentity.lac)) return;
-                list.push({ ...cellIdentity, connectionType });
-              });
-              setCarrier(carrier);
-              setCallInfo(list)
-              // setCarrier("JIO");
-              // setCallInfo([{ "cid": 46771211, "connectionType": "LTE", "eNodeB": 182700, "earfcn": 1301, "localCellId": 11, "mcc": 404, "mnc": 45, "pci": 259, "servingCellFlag": true, "tac": 8279 }, { "cid": 2147483647, "connectionType": "LTE", "eNodeB": 8388607, "earfcn": 1301, "localCellId": 255, "mcc": 2147483647, "mnc": 2147483647, "pci": 392, "servingCellFlag": false, "tac": 2147483647 }, { "cid": 2147483647, "connectionType": "GSM", "lac": 2147483647, "mcc": 2147483647, "mnc": 2147483647, "psc": 2147483647 }])
-              ToastAndroid.show("Updated...", ToastAndroid.SHORT);
-            })
-          });
-        }
-      });
-    } else {
-      ToastAndroid.show("Connect to mobile network...", ToastAndroid.SHORT);
-    }
-  }
-
-  async function requestPermissions(callback) {
-    try {
-      const granted = await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE,
-        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      ]);
-
-      if (
-        granted["android.permission.READ_PHONE_STATE"] === PermissionsAndroid.RESULTS.GRANTED &&
-        granted["android.permission.ACCESS_COARSE_LOCATION"] === PermissionsAndroid.RESULTS.GRANTED &&
-        granted["android.permission.ACCESS_FINE_LOCATION"] === PermissionsAndroid.RESULTS.GRANTED
-      ) {
-        console.log("Permissions granted");
-        callback(true);
-      } else {
-        callback(false);
-        console.log("Permissions denied");
-      }
-    } catch (err) {
-      callback(false);
-      console.warn(err);
-    }
-  }
-
-  const renderCellInfo = () => (
-    <View>
-      <Text style={styleSheet.Title}>Cell Info</Text>
-      <View style={styleSheet.DetailsContainer}>
-        <Text style={{ ...styleSheet.DetailsText, marginVertical: 10 }}>Carrier: {carrier}</Text>
-        {cellInfo.map((item, index) => {
-          const { connectionType = "", tac = "", lac = ""} = item;
-          return (
-            <View key={index}>
-               <Text style={{ display: connectionType != "" ? 'flex' : 'none', ...styleSheet.DetailsText }}>
-                Connection Type: {connectionType}
-              </Text>
-              <Text style={{ display: tac != "" ? 'flex' : 'none', ...styleSheet.DetailsText }}>
-                TAC: {tac}
-              </Text>
-              <Text style={{ display: lac != "" ? 'flex' : 'none', ...styleSheet.DetailsText }}>
-                LAC: {lac}
-              </Text>
-            </View>
-          )
-        })}
-        <View style={{ marginVertical: 10 }} />
-        <Button title="Refresh" onPress={fetchTacAndLac} color={"black"} />
-      </View>
-    </View>
-  )
-
-  const renderNoNetworkAndWifiView = message => (
-    <View style={styleSheet.DetailsContainer}>
-      <Text style={{ ...styleSheet.Title, marginTop: 0, }}>{message}</Text>
-      <Text style={{ ...styleSheet.DetailsText, marginVertical: 15, textAlign: "center" }}>Connection: {networkInfo.type}</Text>
-      <Button title="Refresh" onPress={fetchTacAndLac} color={"black"} />
-    </View>
-  )
+  const [isViewData, toggleView] = useReducer(current => !current, false);
 
   return (
-    <ScrollView style={{}}>
-      <View style={styleSheet.MainContainer}>
-        {networkInfo.isConnected ? networkInfo.type != "wifi" ? renderCellInfo() : renderNoNetworkAndWifiView("Switch from Wifi to Mobile Network and refresh...") : renderNoNetworkAndWifiView("Connect to internet and refresh...")}
-      </View>
-    </ScrollView>
+    <View style={styleSheet.MainContainer}>
+      <CustomHeader
+        title="Cell Info"
+        child={
+          <View>
+            <TouchableOpacity
+              onPress={toggleView}
+            >
+              <MaterialCommunityIcons name={isViewData ? "file-edit" : "file-eye"} size={30} color={"#5c5959"} />
+            </TouchableOpacity>
+          </View>
+        }
+      />
+      {isViewData ? <DetailsScreen /> : <HomeScreen />}
+      <CustomisableAlert
+        animationIn='rubberBand'
+        animationOut='slideOutDown'
+        titleStyle={styleSheet.AlertTitleStyle}
+        alertContainerStyle={styleSheet.AlertContainerStyle}
+        btnStyle={styleSheet.AlertBtnStyle}
+        btnLabelStyle={styleSheet.AlertBtnLabelStyle}
+        textStyle={styleSheet.AlertTextStyle}
+      />
+    </View>
   )
 }
 
 const styleSheet = StyleSheet.create({
   MainContainer: {
-    flex: 1,
+    flex: 1
   },
-  Title: {
-    color: '#c7c5c5',
+  AlertTitleStyle: {
     fontSize: 25,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginTop: '5%',
-  },
-  DetailsContainer: {
-    margin: "6%",
-    backgroundColor: "white",
-    padding: '5%',
-    elevation: 9,
-    borderRadius: 8
-  },
-  DetailsText: {
-    fontSize: 18,
     fontWeight: '700'
+  },
+  AlertContainerStyle: {
+    width: '80%'
+  },
+  AlertBtnStyle: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    elevation: 10
+  },
+  AlertBtnLabelStyle: {
+    textAlign: "center",
+    fontWeight: 'bold',
+    padding: 10
+  },
+  AlertTextStyle: {
+    fontSize: 18,
+    fontWeight: '500'
   }
 });
 
