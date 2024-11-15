@@ -15,6 +15,7 @@ const HomeScreen = props => {
     const [carrier, setCarrier] = useState("");
     const [networkInfo, setNetWorkInfo] = useState({});
     const [name, setName] = useState("");
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const removeNetInfo = NetInfo.addEventListener((state = {}) => {
@@ -92,6 +93,7 @@ const HomeScreen = props => {
                 <TextInput
                     style={styleSheet.InputContainer}
                     value={name}
+                    editable={!loading}
                     placeholder="Enter Name *"
                     placeholderTextColor={"grey"}
                     onChangeText={text => setName(text)}
@@ -140,6 +142,7 @@ const HomeScreen = props => {
                         backgroundColor="black"
                         color="white"
                         width="45%"
+                        loading={loading}
                     />
                 </View>
             </View>
@@ -158,6 +161,7 @@ const HomeScreen = props => {
             });
             return
         }
+        setLoading(true);
         const payload = {
             cellularGeneration,
             carrier,
@@ -167,6 +171,7 @@ const HomeScreen = props => {
             isCellInfo: true
         };
         saveDetails(payload, (flag, response) => {
+            setLoading(false);
             if (
                 flag &&
                 response.res_code == 100

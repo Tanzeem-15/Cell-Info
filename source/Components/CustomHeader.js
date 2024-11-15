@@ -10,11 +10,12 @@ const CustomHeader = ({
             width: '100%',
             padding: 20,
             alignItems: 'center',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            backgroundColor: '#ffffff'
         }}>
             <View style={{
                 flexDirection: 'row',
-                alignItems: 'center'
+                alignItems: 'center',
             }}>
                 <Image
                     source={require('../../assets/images/Cellinfo.png')}
@@ -22,12 +23,12 @@ const CustomHeader = ({
                         height: 40,
                         width: 40,
                         borderRadius: 30,
-                        marginHorizontal:10
+                        marginHorizontal: 10
                     }}
                 />
                 <Text style={{
-                    fontSize:25,
-                    fontWeight:'bold'
+                    fontSize: 25,
+                    fontWeight: 'bold'
                 }}>{title}</Text>
             </View>
             {child}

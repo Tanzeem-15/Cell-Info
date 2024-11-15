@@ -26,7 +26,7 @@ const App = props => {
       />
       {isViewData ? <DetailsScreen /> : <HomeScreen />}
       <CustomisableAlert
-        animationIn='rubberBand'
+        animationIn='slideInDown'
         animationOut='slideOutDown'
         titleStyle={styleSheet.AlertTitleStyle}
         alertContainerStyle={styleSheet.AlertContainerStyle}

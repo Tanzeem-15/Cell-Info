@@ -1,14 +1,17 @@
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 const CustomButton = ({
     onPress,
     label,
     backgroundColor = "black",
     width = "90%",
-    color = "white"
+    color = "white",
+    loading = false
 }) => {
     return (
         <TouchableOpacity
+            disabled={loading}
+            activeOpacity={.7}
             onPress={onPress}
             style={{
                 ...styleSheet.Button,
@@ -16,14 +19,17 @@ const CustomButton = ({
                 width,
             }}
         >
-            <Text
-                style={{
-                    ...styleSheet.ButtonText,
-                    color,
-                }}
-            >
-                {label}
-            </Text>
+            {loading ?
+                <ActivityIndicator size={20} color={'white'} style={styleSheet.IndicatorStyle} />
+                :
+                <Text
+                    style={{
+                        ...styleSheet.ButtonText,
+                        color,
+                    }}
+                >
+                    {label}
+                </Text>}
         </TouchableOpacity>
     );
 }
@@ -38,6 +44,9 @@ const styleSheet = StyleSheet.create({
     ButtonText: {
         textAlign: "center",
         fontWeight: 'bold',
+        padding: 10
+    },
+    IndicatorStyle: {
         padding: 10
     }
 });
