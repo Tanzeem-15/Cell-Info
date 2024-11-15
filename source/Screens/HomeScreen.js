@@ -19,7 +19,7 @@ const HomeScreen = props => {
 
     useEffect(() => {
         const removeNetInfo = NetInfo.addEventListener((state = {}) => {
-            state = { "details": { "carrier": "airtel", "cellularGeneration": "4g", "isConnectionExpensive": true }, "isConnected": true, "isInternetReachable": false, "isWifiEnabled": false, "type": "cellular" }
+            // state = { "details": { "carrier": "airtel", "cellularGeneration": "4g", "isConnectionExpensive": true }, "isConnected": true, "isInternetReachable": false, "isWifiEnabled": false, "type": "cellular" }
             const { type = "", isConnected, details: { cellularGeneration = "" } = {} } = state;
             setNetWorkInfo({
                 type,
@@ -48,9 +48,9 @@ const HomeScreen = props => {
                             });
                             setCarrier(carrier);
                             setCallInfo(list)
-                            setCarrier("JIO");
-                            setCallInfo([{ "cid": 46771211, "connectionType": "LTE", "eNodeB": 182700, "earfcn": 1301, "localCellId": 11, "mcc": 404, "mnc": 45, "pci": 259, "servingCellFlag": true, "tac": 8279 }, { "cid": 2147483647, "connectionType": "LTE", "eNodeB": 8388607, "earfcn": 1301, "localCellId": 255, "mcc": 2147483647, "mnc": 2147483647, "pci": 392, "servingCellFlag": false, "tac": 2147483647 }, { "cid": 2147483647, "connectionType": "GSM", "lac": 2147483647, "mcc": 2147483647, "mnc": 2147483647, "psc": 2147483647 }])
-                            showToast && ToastAndroid.show("Updated...", ToastAndroid.SHORT);
+                            // setCarrier("JIO");
+                            // setCallInfo([{ "cid": 46771211, "connectionType": "LTE", "eNodeB": 182700, "earfcn": 1301, "localCellId": 11, "mcc": 404, "mnc": 45, "pci": 259, "servingCellFlag": true, "tac": 8279 }, { "cid": 2147483647, "connectionType": "LTE", "eNodeB": 8388607, "earfcn": 1301, "localCellId": 255, "mcc": 2147483647, "mnc": 2147483647, "pci": 392, "servingCellFlag": false, "tac": 2147483647 }, { "cid": 2147483647, "connectionType": "GSM", "lac": 2147483647, "mcc": 2147483647, "mnc": 2147483647, "psc": 2147483647 }])
+                            showToast && ToastAndroid.show("Details updated...", ToastAndroid.SHORT);
                         })
                     });
                 }
@@ -106,7 +106,7 @@ const HomeScreen = props => {
         <View>
             <View style={styleSheet.DetailsContainer}>
                 {renderDetailsHeader()}
-                <Text style={{ ...styleSheet.DetailsText, borderBottomWidth: 2, marginTop: 15 }}>Details</Text>
+                <Text style={{ ...styleSheet.DetailsText, borderBottomWidth: 2, marginTop: 15 }}>Network Details</Text>
                 {cellInfo.map((item, index) => {
                     const { connectionType = "", tac = "", lac = "" } = item;
                     return (
@@ -167,8 +167,7 @@ const HomeScreen = props => {
             carrier,
             cellInfo,
             name,
-            date: new Date(),
-            isCellInfo: true
+            date: new Date()
         };
         saveDetails(payload, (flag, response) => {
             setLoading(false);

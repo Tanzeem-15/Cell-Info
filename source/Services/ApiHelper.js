@@ -1,23 +1,33 @@
 import axios from "axios";
 import { _IP, _URL_LIST } from "../../util/Constants";
+import NetInfo from '@react-native-community/netinfo';
+
+export const isNetworkAvailable = (callback) => {
+    NetInfo.fetch().then(state => callback(state.isConnected));
+};
 
 export const post = async (url, request, callback) => {
-    axios.post(_IP + url, request, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Basic YWRtaW46YWRtaW4jMTIz',
-            ecrypt: false,
-        },
-    }).then((response) => {
-        console.log('SUCCESS');
-        const responseData = response.data;
-        console.log(`[URL]${_IP + url}\n[Request]${request}\n[Response]${JSON.stringify(responseData)}`);
-        callback(true, responseData, request, url);
-    }).catch((error) => {
-        console.log('Failed');
-        const responseData = response.data;
-        console.log(`[URL]${_IP + url}\n[Request]${request}\n[Response]${JSON.stringify(error)}`);
-        callback(false, responseData, request, url);
+    isNetworkAvailable(flag => {
+        if (flag) {
+            axios.post(_IP + url, request, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Basic YWRtaW46YWRtaW4jMTIz',
+                    ecrypt: false,
+                },
+            }).then((response) => {
+                console.log('SUCCESS');
+                const responseData = response.data;
+                console.log(`[URL]${_IP + url}\n[Request]${request}\n[Response]${JSON.stringify(responseData)}`);
+                callback(true, responseData, request, url);
+            }).catch((error) => {
+                console.log('Failed');
+                console.log(`[URL]${_IP + url}\n[Request]${request}\n[Response]${JSON.stringify(error)}`);
+                callback(false, error, request, url);
+            });
+        } else {
+            callback(false, { res_code: -1, res_msg: "No internet connection" }, request, url);
+        }
     });
 };
 
@@ -56,8 +66,8 @@ export const saveDetails = (doc, callback) => {
         prepareRequest({
             generic: {
                 doc,
-                counterColl: "m_device_dtls",
-                key: "mobileapp.device_unique_details"
+                counterColl: "m_cellinfo_dtls",
+                key: "mobileapp.cellInfo_details"
             }
         }),
         callback
@@ -72,7 +82,7 @@ export const fetchDetails = (callback) => {
         prepareRequest({
             generic: {
                 query: {},
-                key: "mobileapp.device_unique_details"
+                key: "mobileapp.cellInfo_details"
             }
         }),
         callback
