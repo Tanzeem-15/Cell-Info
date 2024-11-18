@@ -180,7 +180,7 @@ const HomeScreen = props => {
                     title: "Success",
                     alertType: "success",
                     customIcon: _ALERT_IMAGES.SUCCESS,
-                    message: "Saveed Success...",
+                    message: "Saved Success...",
                     onPress: closeAlert,
                 });
             } else {

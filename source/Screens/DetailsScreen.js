@@ -93,7 +93,7 @@ const DetailsScreen = props => {
                         {tableView()}
                     </View>
                     :
-                    <ErrorComponent message={"NO Information Available..."} />
+                    <ErrorComponent message={"No Information Available..."} />
             }
 
         </View>
